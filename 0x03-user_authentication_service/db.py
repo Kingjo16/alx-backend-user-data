@@ -39,7 +39,6 @@ class DB:
             new_user = None
         return new_user
 
-
     def find_user_by(self, **kwargs) -> User:
         """Find and returns the first user that matches the given filters."""
         fields, values = [], []
@@ -57,7 +56,7 @@ class DB:
         return result
 
     def update_user(self, user_id: int, **kwargs) -> None:
-        """Update a user’s attributes.""" 
+        """Update a user’s attributes."""
         user = self.find_user_by(id=user_id)
         if user is None:
             return
