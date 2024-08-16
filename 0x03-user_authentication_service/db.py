@@ -7,10 +7,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 
-from account import Base, Account
+from account import Base, User
 
 
-class Database:
+class DB:
     """Database class for managing account records."""
 
     def __init__(self) -> None:
@@ -22,52 +22,59 @@ class Database:
 
     @property
     def _session(self) -> Session:
-        """Memoized session object."""
+        """Memoized From the Start of session object."""
         if self.__session is None:
             DBSession = sessionmaker(bind=self._engine)
             self.__session = DBSession()
         return self.__session
 
-    def add_account(self, email_address: str, password_hash: str) -> Account:
-        """Adds a new account to the database."""
+    def add_user(self, email: str, hashed_password: str) -> User:
+        """Adds a new user to the database and returns the User object."""
         try:
-            new_account = Account(email_address=email_address, password_hash=password_hash)
-            self._session.add(new_account)
+            new_user = User(email=email, hashed_password=hashed_password)
+            self._session.add(new_user)
             self._session.commit()
         except Exception:
             self._session.rollback()
-            new_account = None
-        return new_account
+            new_user = None
+        return new_user
 
-    def find_account_by(self, **kwargs) -> Account:
-        """Finds an account based on a set of filters."""
+
+    def find_user_by(self, **kwargs) -> User:
+        """Finds and returns the first user that matches the given filters.
+    
+    Raises:
+        NoResultFound: If no matching user is found.
+        InvalidRequestError: If an invalid filter is provided.
+    """
         fields, values = [], []
         for key, value in kwargs.items():
-            if hasattr(Account, key):
-                fields.append(getattr(Account, key))
+            if hasattr(User, key):
+                fields.append(getattr(User, key))
                 values.append(value)
             else:
                 raise InvalidRequestError()
-        result = self._session.query(Account).filter(
+        result = self._session.query(User).filter(
             tuple_(*fields).in_([tuple(values)])
         ).first()
         if result is None:
             raise NoResultFound()
         return result
 
-    def update_account(self, account_id: int, **kwargs) -> None:
-        """Updates an account based on a given ID."""
-        account = self.find_account_by(account_id=account_id)
-        if account is None:
+    def update_user(self, user_id: int, **kwargs) -> None:
+        """Updates a user’s attributes."""
+        
+        user = self.find_user_by(id=user_id)
+        if user is None:
             return
-        update_data = {}
+        update_source = {}
         for key, value in kwargs.items():
-            if hasattr(Account, key):
-                update_data[getattr(Account, key)] = value
+            if hasattr(User, key):
+                update_source[getattr(User, key)] = value
             else:
                 raise ValueError()
-        self._session.query(Account).filter(Account.account_id == account_id).update(
-            update_data,
+        self._session.query(User).filter(User.id == user_id).update(
+            update_source,
             synchronize_session=False,
         )
         self._session.commit()
