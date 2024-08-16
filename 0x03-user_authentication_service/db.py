@@ -29,7 +29,7 @@ class DB:
         return self.__session
 
     def add_user(self, email: str, hashed_password: str) -> User:
-        """Adds a new user to the database and returns the User object."""
+        """Add a new user to the database and returns the User object."""
         try:
             new_user = User(email=email, hashed_password=hashed_password)
             self._session.add(new_user)
@@ -41,12 +41,7 @@ class DB:
 
 
     def find_user_by(self, **kwargs) -> User:
-        """Finds and returns the first user that matches the given filters.
-    
-    Raises:
-        NoResultFound: If no matching user is found.
-        InvalidRequestError: If an invalid filter is provided.
-    """
+        """Find and returns the first user that matches the given filters."""
         fields, values = [], []
         for key, value in kwargs.items():
             if hasattr(User, key):
@@ -62,8 +57,7 @@ class DB:
         return result
 
     def update_user(self, user_id: int, **kwargs) -> None:
-        """Updates a user’s attributes."""
-        
+        """Update a user’s attributes.""" 
         user = self.find_user_by(id=user_id)
         if user is None:
             return
